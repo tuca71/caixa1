@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vendas - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Vendas</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Registrar Venda</h2>
+
+    <form id="vendasForm">
+      <div class="form-group">
+        <label for="cliente">Nome do Cliente:</label>
+        <input type="text" id="cliente" required placeholder="Nome do cliente" />
+      </div>
+
+      <div class="form-group">
+        <label for="produto">Produto / Serviço:</label>
+        <input type="text" id="produto" required placeholder="Ex: Troca de bateria" />
+      </div>
+
+      <div class="form-group">
+        <label for="valor">Valor (R$):</label>
+        <input type="number" id="valor" required step="0.01" min="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="form-group">
+        <label for="data">Data:</label>
+        <input type="date" id="data" required />
+      </div>
+
+      <button type="submit">Adicionar Venda</button>
+    </form>
+
+    <section id="listaVendas">
+      <h3>Vendas Registradas</h3>
+      <ul id="vendasList"></ul>
+    </section>
+
+    <section id="totalVendido">
+      <h3>Total Vendido: R$ <span id="total">0,00</span></h3>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('vendasForm');
+    const lista = document.getElementById('vendasList');
+    const totalEl = document.getElementById('total');
+
+    function formatarValor(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function carregarVendas() {
+      return JSON.parse(localStorage.getItem('vendas')) || [];
+    }
+
+    function salvarVendas(vendas) {
+      localStorage.setItem('vendas', JSON.stringify(vendas));
+    }
+
+    function atualizarInterface() {
+      const vendas = carregarVendas();
+      lista.innerHTML = '';
+
+      let total = 0;
+
+      if (vendas.length === 0) {
+        lista.innerHTML = '<li>Nenhuma venda registrada.</li>';
+      } else {
+        vendas.forEach(venda => {
+          const li = document.createElement('li');
+          const dataFormatada = new Date(venda.data).toLocaleDateString('pt-BR');
+          li.textContent = `${venda.cliente} - ${venda.produto} - ${formatarValor(venda.valor)} - ${dataFormatada}`;
+          lista.appendChild(li);
+
+          total += venda.valor;
+        });
+      }
+
+      totalEl.textContent = formatarValor(total);
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const cliente = document.getElementById('cliente').value.trim();
+      const produto = document.getElementById('produto').value.trim();
+      const valor = parseFloat(document.getElementById('valor').value);
+      const data = document.getElementById('data').value;
+
+      if (!cliente || !produto || !data || isNaN(valor) || valor <= 0) {
+        alert('Preencha todos os campos corretamente.');
+        return;
+      }
+
+      const vendas = carregarVendas();
+      vendas.push({ cliente, produto, valor, data });
+
+      salvarVendas(vendas);
+      atualizarInterface();
+
+      form.reset();
+    });
+
+    atualizarInterface();
+  </script>
+</body>
+</html>

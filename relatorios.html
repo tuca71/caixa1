@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relatórios - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+  <style>
+    #graficos {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    canvas {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Relatórios</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Resumo Financeiro</h2>
+    <div id="resumoFinanceiro">
+      <p>Entradas: R$ <span id="totalEntradas">0,00</span></p>
+      <p>Saídas: R$ <span id="totalSaidas">0,00</span></p>
+      <p>Vendas: R$ <span id="totalVendas">0,00</span></p>
+      <p><strong>Saldo Atual: R$ <span id="saldoAtual">0,00</span></strong></p>
+    </div>
+
+    <h2>Ordens de Serviço</h2>
+    <ul id="listaOrdens"></ul>
+
+    <h2>Gráficos Simples</h2>
+    <div id="graficos">
+      <canvas id="graficoEntradas" width="300" height="200"></canvas>
+      <canvas id="graficoSaidas" width="300" height="200"></canvas>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    function formatarValor(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function carregarDados() {
+      const entradas = JSON.parse(localStorage.getItem('entradas')) || [];
+      const saidas = JSON.parse(localStorage.getItem('saidas')) || [];
+      const vendas = JSON.parse(localStorage.getItem('vendas')) || [];
+      const ordens = JSON.parse(localStorage.getItem('ordensServico')) || [];
+      return { entradas, saidas, vendas, ordens };
+    }
+
+    function atualizarResumo() {
+      const { entradas, saidas, vendas } = carregarDados();
+
+      const totalEntradas = entradas.reduce((acc, cur) => acc + cur.valor, 0);
+      const totalSaidas = saidas.reduce((acc, cur) => acc + cur.valor, 0);
+      const totalVendas = vendas.reduce((acc, cur) => acc + cur.valor, 0);
+      const saldo = totalEntradas + totalVendas - totalSaidas;
+
+      document.getElementById('totalEntradas').textContent = formatarValor(totalEntradas);
+      document.getElementById('totalSaidas').textContent = formatarValor(totalSaidas);
+      document.getElementById('totalVendas').textContent = formatarValor(totalVendas);
+      document.getElementById('saldoAtual').textContent = formatarValor(saldo);
+    }
+
+    function listarOrdens() {
+      const { ordens } = carregarDados();
+      const lista = document.getElementById('listaOrdens');
+      lista.innerHTML = '';
+
+      if (ordens.length === 0) {
+        lista.innerHTML = '<li>Nenhuma ordem de serviço registrada.</li>';
+        return;
+      }
+
+      ordens.forEach(ordem => {
+        const li = document.createElement('li');
+        const dataFormatada = new Date(ordem.data).toLocaleDateString('pt-BR');
+        li.textContent = `Cliente: ${ordem.cliente} | Serviço: ${ordem.servico} | Valor: ${formatarValor(ordem.valor)} | Data: ${dataFormatada}`;
+        lista.appendChild(li);
+      });
+    }
+
+    // Gráficos simples com Canvas API
+    function desenharGrafico(canvasId, valores, cor, titulo) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas.getContext) return;
+
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const maxValor = Math.max(...valores, 10);
+      const barWidth = 40;
+      const gap = 20;
+      const baseY = canvas.height - 30;
+
+      // Título
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#333';
+      ctx.fillText(titulo, 10, 20);
+
+      // Barras
+      valores.forEach((valor, i) => {
+        const barHeight = (valor / maxValor) * (canvas.height - 60);
+        ctx.fillStyle = cor;
+        ctx.fillRect(10 + i * (barWidth + gap), baseY - barHeight, barWidth, barHeight);
+
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Arial';
+        ctx.fillText(formatarValor(valor), 10 + i * (barWidth + gap), baseY - barHeight - 5);
+      });
+
+      // Eixo X
+      ctx.beginPath();
+      ctx.moveTo(5, baseY);
+      ctx.lineTo(canvas.width - 5, baseY);
+      ctx.stroke();
+    }
+
+    function init() {
+      atualizarResumo();
+      listarOrdens();
+
+      const { entradas, saidas } = carregarDados();
+
+      // Para exemplo, mostra os últimos 5 valores de entradas e saídas para gráficos
+      const ultEntradas = entradas.slice(-5).map(e => e.valor);
+      const ultSaidas = saidas.slice(-5).map(s => s.valor);
+
+      desenharGrafico('graficoEntradas', ultEntradas, '#4CAF50', 'Entradas Recentes');
+      desenharGrafico('graficoSaidas', ultSaidas, '#F44336', 'Saídas Recentes');
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

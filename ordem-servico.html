@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ordem de Serviço - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Ordem de Serviço</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Cadastro de Ordem de Serviço</h2>
+
+    <form id="osForm">
+      <div class="form-group">
+        <label for="cliente">Nome do Cliente:</label>
+        <input type="text" id="cliente" required placeholder="Nome do cliente" />
+      </div>
+
+      <div class="form-group">
+        <label for="equipamento">Equipamento:</label>
+        <input type="text" id="equipamento" required placeholder="Celular, notebook, etc." />
+      </div>
+
+      <div class="form-group">
+        <label for="defeito">Defeito Relatado:</label>
+        <textarea id="defeito" required placeholder="Descreva o problema"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="servico">Serviço a ser realizado:</label>
+        <textarea id="servico" required placeholder="Ex: Troca de tela, formatação"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Status:</label>
+        <select id="status" required>
+          <option value="" disabled selected>Selecione</option>
+          <option value="Aberto">Aberto</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Concluído">Concluído</option>
+          <option value="Entregue">Entregue</option>
+        </select>
+      </div>
+
+      <button type="submit">Cadastrar OS</button>
+    </form>
+
+    <section id="listaOS">
+      <h3>Ordens de Serviço Cadastradas</h3>
+      <ul id="osList"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    const osForm = document.getElementById('osForm');
+    const osListEl = document.getElementById('osList');
+
+    // Função para carregar OS do localStorage
+    function carregarOS() {
+      return JSON.parse(localStorage.getItem('ordensServico')) || [];
+    }
+
+    // Salvar OS no localStorage
+    function salvarOS(osArray) {
+      localStorage.setItem('ordensServico', JSON.stringify(osArray));
+    }
+
+    // Atualizar lista na tela
+    function atualizarLista() {
+      const ordens = carregarOS();
+      osListEl.innerHTML = '';
+
+      if (ordens.length === 0) {
+        osListEl.innerHTML = '<li>Nenhuma ordem cadastrada.</li>';
+        return;
+      }
+
+      ordens.forEach((os, index) => {
+        const li = document.createElement('li');
+        li.classList.add('os-item');
+        li.innerHTML = `
+          <strong>Cliente:</strong> ${os.cliente} <br/>
+          <strong>Equipamento:</strong> ${os.equipamento} <br/>
+          <strong>Defeito:</strong> ${os.defeito} <br/>
+          <strong>Serviço:</strong> ${os.servico} <br/>
+          <strong>Status:</strong> ${os.status} <br/>
+          <button onclick="editarOS(${index})">Editar</button>
+          <button onclick="excluirOS(${index})">Excluir</button>
+        `;
+        osListEl.appendChild(li);
+      });
+    }
+
+    // Editar OS
+    function editarOS(index) {
+      const ordens = carregarOS();
+      const os = ordens[index];
+
+      document.getElementById('cliente').value = os.cliente;
+      document.getElementById('equipamento').value = os.equipamento;
+      document.getElementById('defeito').value = os.defeito;
+      document.getElementById('servico').value = os.servico;
+      document.getElementById('status').value = os.status;
+
+      // Remover do array para atualização
+      ordens.splice(index, 1);
+      salvarOS(ordens);
+      atualizarLista();
+    }
+
+    // Excluir OS
+    function excluirOS(index) {
+      if (!confirm('Tem certeza que deseja excluir essa ordem?')) return;
+
+      const ordens = carregarOS();
+      ordens.splice(index, 1);
+      salvarOS(ordens);
+      atualizarLista();
+    }
+
+    // Evento submit
+    osForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const cliente = document.getElementById('cliente').value.trim();
+      const equipamento = document.getElementById('equipamento').value.trim();
+      const defeito = document.getElementById('defeito').value.trim();
+      const servico = document.getElementById('servico').value.trim();
+      const status = document.getElementById('status').value;
+
+      if (!cliente || !equipamento || !defeito || !servico || !status) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+      }
+
+      const novaOS = { cliente, equipamento, defeito, servico, status };
+
+      const ordens = carregarOS();
+      ordens.push(novaOS);
+      salvarOS(ordens);
+      atualizarLista();
+
+      osForm.reset();
+    });
+
+    // Inicializa lista ao carregar
+    atualizarLista();
+  </script>
+
+  <style>
+    /* Pequenos ajustes para o formulário e lista */
+    .os-item {
+      background-color: #eee;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .os-item button {
+      margin-top: 0.5rem;
+      margin-right: 0.5rem;
+      padding: 0.3rem 0.6rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .os-item button:hover {
+      background-color: #ccc;
+    }
+  </style>
+</body>
+</html>

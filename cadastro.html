@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro Geral - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+  <style>
+    .form-section {
+      margin-bottom: 30px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .form-section h3 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 8px;
+    }
+    input, select, button {
+      margin-top: 5px;
+      padding: 7px;
+      width: 100%;
+      max-width: 300px;
+      box-sizing: border-box;
+    }
+    ul.cadastro-lista {
+      list-style: none;
+      padding-left: 0;
+    }
+    ul.cadastro-lista li {
+      background: #fff;
+      margin-bottom: 8px;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 600px;
+    }
+    .btn-excluir {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Cadastro Geral</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="form-section">
+      <h3>Cadastro de Clientes</h3>
+      <form id="formCliente">
+        <label for="nomeCliente">Nome:</label>
+        <input type="text" id="nomeCliente" required />
+        
+        <label for="telefoneCliente">Telefone:</label>
+        <input type="tel" id="telefoneCliente" required />
+        
+        <button type="submit">Adicionar Cliente</button>
+      </form>
+
+      <ul id="listaClientes" class="cadastro-lista"></ul>
+    </section>
+
+    <section class="form-section">
+      <h3>Cadastro de Fornecedores</h3>
+      <form id="formFornecedor">
+        <label for="nomeFornecedor">Nome:</label>
+        <input type="text" id="nomeFornecedor" required />
+        
+        <label for="contatoFornecedor">Contato:</label>
+        <input type="tel" id="contatoFornecedor" required />
+        
+        <button type="submit">Adicionar Fornecedor</button>
+      </form>
+
+      <ul id="listaFornecedores" class="cadastro-lista"></ul>
+    </section>
+
+    <section class="form-section">
+      <h3>Cadastro de Produtos/Serviços</h3>
+      <form id="formProdutoServico">
+        <label for="nomeProduto">Nome:</label>
+        <input type="text" id="nomeProduto" required />
+        
+        <label for="precoProduto">Preço (R$):</label>
+        <input type="number" step="0.01" id="precoProduto" required />
+        
+        <button type="submit">Adicionar Produto/Serviço</button>
+      </form>
+
+      <ul id="listaProdutos" class="cadastro-lista"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    // Função para salvar e recuperar dados do localStorage
+    function salvarDados(chave, dados) {
+      localStorage.setItem(chave, JSON.stringify(dados));
+    }
+    function carregarDados(chave) {
+      return JSON.parse(localStorage.getItem(chave)) || [];
+    }
+
+    // Função para atualizar a lista na UI
+    function atualizarLista(chave, listaEl) {
+      const dados = carregarDados(chave);
+      listaEl.innerHTML = '';
+      dados.forEach((item, i) => {
+        const li = document.createElement('li');
+        let texto;
+        if (chave === 'clientes') {
+          texto = `${item.nome} - Tel: ${item.telefone}`;
+        } else if (chave === 'fornecedores') {
+          texto = `${item.nome} - Contato: ${item.contato}`;
+        } else if (chave === 'produtos') {
+          texto = `${item.nome} - R$ ${parseFloat(item.preco).toFixed(2).replace('.', ',')}`;
+        }
+        li.textContent = texto;
+
+        const btnExcluir = document.createElement('button');
+        btnExcluir.textContent = 'Excluir';
+        btnExcluir.className = 'btn-excluir';
+        btnExcluir.onclick = () => {
+          dados.splice(i, 1);
+          salvarDados(chave, dados);
+          atualizarLista(chave, listaEl);
+        };
+
+        li.appendChild(btnExcluir);
+        listaEl.appendChild(li);
+      });
+    }
+
+    // Clientes
+    const formCliente = document.getElementById('formCliente');
+    const listaClientes = document.getElementById('listaClientes');
+    formCliente.addEventListener('submit', e => {
+      e.preventDefault();
+      const nome = document.getElementById('nomeCliente').value.trim();
+      const telefone = document.getElementById('telefoneCliente').value.trim();
+      if (!nome || !telefone) return alert('Preencha todos os campos.');
+
+      const clientes = carregarDados('clientes');
+      clientes.push({ nome, telefone });
+      salvarDados('clientes', clientes);
+      atualizarLista('clientes', listaClientes);
+      formCliente.reset();
+    });
+    atualizarLista('clientes', listaClientes);
+
+    // Fornecedores
+    const formFornecedor = document.getElementById('formFornecedor');
+    const listaFornecedores = document.getElementById('listaFornecedores');
+    formFornecedor.addEventListener('submit', e => {
+      e.preventDefault();
+      const nome = document.getElementById('nomeFornecedor').value.trim();
+      const contato = document.getElementById('contatoFornecedor').value.trim();
+      if (!nome || !contato) return alert('Preencha todos os campos.');
+
+      const fornecedores = carregarDados('fornecedores');
+      fornecedores.push({ nome, contato });
+      salvarDados('fornecedores', fornecedores);
+      atualizarLista('fornecedores', listaFornecedores);
+      formFornecedor.reset();
+    });
+    atualizarLista('fornecedores', listaFornecedores);
+
+    // Produtos/Serviços
+    const formProdutoServico = document.getElementById('formProdutoServico');
+    const listaProdutos = document.getElementById('listaProdutos');
+    formProdutoServico.addEventListener('submit', e => {
+      e.preventDefault();
+      const nome = document.getElementById('nomeProduto').value.trim();
+      const preco = parseFloat(document.getElementById('precoProduto').value);
+      if (!nome || isNaN(preco) || preco <= 0) return alert('Preencha todos os campos corretamente.');
+
+      const produtos = carregarDados('produtos');
+      produtos.push({ nome, preco });
+      salvarDados('produtos', produtos);
+      atualizarLista('produtos', listaProdutos);
+      formProdutoServico.reset();
+    });
+    atualizarLista('produtos', listaProdutos);
+  </script>
+</body>
+</html>

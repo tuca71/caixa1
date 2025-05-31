@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Atitude Cell - Sistema Completo</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/app-icon.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0a" />
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+        <li><button id="darkModeBtn">🌙 Modo Escuro</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h2>Bem-vindo ao Sistema da Assistência Técnica Atitude Cell</h2>
+      <p>Gerencie serviços, vendas, caixa e clientes com praticidade e segurança.</p>
+      <img src="./assets/logo.png" alt="Assistência Técnica Atitude Cell" class="banner">
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    const btn = document.getElementById("darkModeBtn");
+    btn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // PWA install
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log("SW registrado!"))
+        .catch(err => console.log("Erro ao registrar SW:", err));
+    }
+
+    // Verifica o tema salvo
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
+      }
+    });
+  </script>
+</body>
+</html>

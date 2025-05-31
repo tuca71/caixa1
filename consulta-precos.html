@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Consulta de Preços - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Consulta de Preços</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="entradas-saidas.html">Caixa</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Consulta de Preços</h2>
+
+    <input type="text" id="busca" placeholder="Digite o nome do serviço ou produto" />
+
+    <ul id="listaPrecos"></ul>
+
+    <p><em>Obs: Os preços podem variar conforme o serviço e peça.</em></p>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    const listaPrecosEl = document.getElementById('listaPrecos');
+    const buscaEl = document.getElementById('busca');
+
+    // Lista padrão inicial de preços (pode ser alterada e salva no localStorage)
+    const precoPadrao = [
+      { nome: "Troca de Tela Celular", preco: 150.00 },
+      { nome: "Troca de Bateria Celular", preco: 80.00 },
+      { nome: "Formatação Celular", preco: 50.00 },
+      { nome: "Troca de Tela Notebook", preco: 300.00 },
+      { nome: "Instalação de Software", preco: 100.00 },
+      { nome: "Recuperação de Dados", preco: 120.00 },
+      { nome: "Manutenção Preventiva", preco: 90.00 },
+      { nome: "Troca de Alto-Falante", preco: 70.00 },
+    ];
+
+    // Salva a lista padrão no localStorage se ainda não existir
+    if (!localStorage.getItem('precos')) {
+      localStorage.setItem('precos', JSON.stringify(precoPadrao));
+    }
+
+    // Carrega a lista de preços
+    function carregarPrecos() {
+      return JSON.parse(localStorage.getItem('precos')) || [];
+    }
+
+    // Atualiza a exibição da lista filtrada
+    function atualizarLista(filtro = '') {
+      const precos = carregarPrecos();
+      listaPrecosEl.innerHTML = '';
+
+      const filtroMinusculo = filtro.toLowerCase();
+
+      const filtrados = precos.filter(item => item.nome.toLowerCase().includes(filtroMinusculo));
+
+      if (filtrados.length === 0) {
+        listaPrecosEl.innerHTML = '<li>Nenhum serviço ou produto encontrado.</li>';
+        return;
+      }
+
+      filtrados.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.nome} - R$ ${item.preco.toFixed(2).replace('.', ',')}`;
+        listaPrecosEl.appendChild(li);
+      });
+    }
+
+    buscaEl.addEventListener('input', e => {
+      atualizarLista(e.target.value);
+    });
+
+    // Inicializa lista completa
+    atualizarLista();
+  </script>
+</body>
+</html>

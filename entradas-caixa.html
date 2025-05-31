@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Caixa - Atitude Cell</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="icons/app-icon.png" type="image/png" />
+</head>
+<body>
+  <header>
+    <h1>📱 Atitude Cell - Caixa</h1>
+    <nav>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="ordem-servico.html">Ordem de Serviço</a></li>
+        <li><a href="vendas.html">Vendas</a></li>
+        <li><a href="consulta-precos.html">Consulta de Preços</a></li>
+        <li><a href="relatorios.html">Relatórios</a></li>
+        <li><a href="cadastro.html">Cadastro Geral</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2>Entradas e Saídas de Caixa</h2>
+
+    <form id="caixaForm">
+      <div class="form-group">
+        <label for="descricao">Descrição:</label>
+        <input type="text" id="descricao" required placeholder="Ex: Venda de peça, pagamento, etc" />
+      </div>
+
+      <div class="form-group">
+        <label for="tipo">Tipo:</label>
+        <select id="tipo" required>
+          <option value="" disabled selected>Selecione</option>
+          <option value="entrada">Entrada</option>
+          <option value="saida">Saída</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="valor">Valor (R$):</label>
+        <input type="number" id="valor" required step="0.01" min="0.01" placeholder="0,00" />
+      </div>
+
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <section id="listaMovimentacoes">
+      <h3>Movimentações</h3>
+      <ul id="movimentacoes"></ul>
+    </section>
+
+    <section id="saldoCaixa">
+      <h3>Saldo Atual: R$ <span id="saldo">0,00</span></h3>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Atitude Cell - Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('caixaForm');
+    const descricaoInput = document.getElementById('descricao');
+    const tipoInput = document.getElementById('tipo');
+    const valorInput = document.getElementById('valor');
+    const lista = document.getElementById('movimentacoes');
+    const saldoEl = document.getElementById('saldo');
+
+    // Função para formatar valor em moeda BRL
+    function formatarValor(valor) {
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // Carrega movimentações do localStorage
+    function carregarMovimentacoes() {
+      const data = JSON.parse(localStorage.getItem('movimentacoes')) || [];
+      return data;
+    }
+
+    // Salva movimentações no localStorage
+    function salvarMovimentacoes(movs) {
+      localStorage.setItem('movimentacoes', JSON.stringify(movs));
+    }
+
+    // Atualiza a lista e saldo na interface
+    function atualizarInterface() {
+      const movs = carregarMovimentacoes();
+      lista.innerHTML = '';
+
+      let saldo = 0;
+
+      if (movs.length === 0) {
+        lista.innerHTML = '<li>Nenhuma movimentação registrada.</li>';
+      } else {
+        movs.forEach((mov, index) => {
+          const li = document.createElement('li');
+          li.textContent = `${mov.descricao} - ${mov.tipo === 'entrada' ? '+' : '-'} ${formatarValor(mov.valor)}`;
+          lista.appendChild(li);
+
+          saldo += mov.tipo === 'entrada' ? mov.valor : -mov.valor;
+        });
+      }
+
+      saldoEl.textContent = formatarValor(saldo);
+    }
+
+    // Evento submit do formulário
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const descricao = descricaoInput.value.trim();
+      const tipo = tipoInput.value;
+      const valor = parseFloat(valorInput.value);
+
+      if (!descricao || !tipo || isNaN(valor) || valor <= 0) {
+        alert('Preencha todos os campos corretamente.');
+        return;
+      }
+
+      const movs = carregarMovimentacoes();
+
+      movs.push({ descricao, tipo, valor });
+
+      salvarMovimentacoes(movs);
+      atualizarInterface();
+
+      form.reset();
+    });
+
+    // Inicializa interface
+    atualizarInterface();
+  </script>
+</body>
+</html>
